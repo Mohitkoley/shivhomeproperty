@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BusinessSettings {
+  id            String   @id @default(cuid())
+  businessName  String   @default("Shiv Home Property PG")
+  ownerName     String?
+  contactNumber String?
+  whatsappNumber String?
+  email         String?
+  address       String?
+  facebookUrl   String?
+  instagramUrl  String?
+  updatedAt     DateTime @updatedAt
+}
+
+model PgProperty {
+  id            String      @id @default(cuid())
+  name          String
+  address       String
+  mapsLink      String?
+  ownerContact  String?
+  whatsappContact String?
+  pgType        String      // e.g., "Boys", "Girls", "Co-living"
+  description   String?
+  rules         String?     // e.g. JSON array or text
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  roomTypes     RoomType[]
+  amenities     PgAmenity[]
+  images        PgImage[]
+  reviews       Review[]
+  enquiries     Enquiry[]
+}
+
+model RoomType {
+  id            String     @id @default(cuid())
+  pgId          String
+  pg            PgProperty @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  sharingType   String     // e.g., "Single", "2 Sharing", "3 Sharing"
+  rent          Float
+  deposit       Float?
+  isAvailable   Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Amenity {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  icon        String?     // e.g. lucide-react icon name string
+  pgAmenities PgAmenity[]
+}
+
+model PgAmenity {
+  pgId      String
+  pg        PgProperty @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  amenityId String
+  amenity   Amenity    @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@id([pgId, amenityId])
+}
+
+model PgImage {
+  id        String     @id @default(cuid())
+  pgId      String
+  pg        PgProperty @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  url       String
+  isMain    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+}
+
+model Review {
+  id        String     @id @default(cuid())
+  pgId      String
+  pg        PgProperty @relation(fields: [pgId], references: [id], onDelete: Cascade)
+  name      String
+  rating    Int        // 1 to 5
+  message   String
+  isApproved Boolean   @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Enquiry {
+  id          String     @id @default(cuid())
+  pgId        String?
+  pg          PgProperty? @relation(fields: [pgId], references: [id], onDelete: SetNull)
+  name        String
+  phone       String
+  message     String
+  isContacted Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
