@@ -5,9 +5,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
   href?: string
+  target?: string
 }
 
-export function Button({ variant = 'primary', size = 'md', className = '', href, children, ...props }: ButtonProps) {
+export function Button({ variant = 'primary', size = 'md', className = '', href, target, children, ...props }: ButtonProps) {
   const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:pointer-events-none disabled:opacity-50'
   
   const variants = {
@@ -27,7 +28,7 @@ export function Button({ variant = 'primary', size = 'md', className = '', href,
 
   if (href) {
     return (
-      <Link href={href} className={classes}>
+      <Link href={href} target={target} className={classes}>
         {children}
       </Link>
     )

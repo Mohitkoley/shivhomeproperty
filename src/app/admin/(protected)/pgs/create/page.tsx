@@ -37,11 +37,20 @@ export default async function CreatePgPage() {
                   <option value="Co-living">Co-living</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Area / Locality <span className="text-gray-400 text-xs">(e.g. Malad, Andheri)</span></label>
+                <input type="text" name="area" className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="e.g. Andheri East" />
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Full Address <span className="text-red-500">*</span></label>
               <textarea name="address" required rows={2} className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="Complete address of the property"></textarea>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Google Maps Link</label>
+              <input type="url" name="mapsLink" className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="https://goo.gl/maps/..." />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

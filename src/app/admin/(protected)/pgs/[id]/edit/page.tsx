@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { deletePg } from '../actions' // Import from parent route actions
+import { deletePg } from '../../actions' // Import from parent route actions
 import { revalidatePath } from 'next/cache'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -31,12 +31,14 @@ export default async function EditPgPage({ params }: { params: { id: string } })
     const name = formData.get('name') as string
     const address = formData.get('address') as string
     const pgType = formData.get('pgType') as string
+    const area = formData.get('area') as string
+    const mapsLink = formData.get('mapsLink') as string
     const ownerContact = formData.get('ownerContact') as string
     const whatsappContact = formData.get('whatsappContact') as string
     const description = formData.get('description') as string
     const rules = formData.get('rules') as string
     
-    if (!name || !address || !pgType) return
+    if (!name || !address || !pgType) throw new Error('Missing required fields')
 
     // Extract amenities
     const allAmenities = await prisma.amenity.findMany()
@@ -50,6 +52,8 @@ export default async function EditPgPage({ params }: { params: { id: string } })
         name,
         address,
         pgType,
+        area: area || null,
+        mapsLink: mapsLink || null,
         ownerContact: ownerContact || null,
         whatsappContact: whatsappContact || null,
         description: description || null,
@@ -123,11 +127,20 @@ export default async function EditPgPage({ params }: { params: { id: string } })
                   <option value="Co-living">Co-living</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Area / Locality <span className="text-gray-400 text-xs">(e.g. Malad, Andheri)</span></label>
+                <input type="text" name="area" defaultValue={pg.area || ''} className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="e.g. Andheri East" />
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Full Address <span className="text-red-500">*</span></label>
               <textarea name="address" defaultValue={pg.address} required rows={2} className="w-full rounded-md border border-gray-300 px-3 py-2"></textarea>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Google Maps Link</label>
+              <input type="url" name="mapsLink" defaultValue={pg.mapsLink || ''} className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="https://goo.gl/maps/..." />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

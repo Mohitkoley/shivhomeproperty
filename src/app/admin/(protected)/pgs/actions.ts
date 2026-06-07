@@ -8,13 +8,15 @@ export async function createPg(formData: FormData) {
   const name = formData.get('name') as string
   const address = formData.get('address') as string
   const pgType = formData.get('pgType') as string
+  const area = formData.get('area') as string
+  const mapsLink = formData.get('mapsLink') as string
   const ownerContact = formData.get('ownerContact') as string
   const whatsappContact = formData.get('whatsappContact') as string
   const description = formData.get('description') as string
   const rules = formData.get('rules') as string
   
   // Basic validation
-  if (!name || !address || !pgType) return { error: 'Missing required fields' }
+  if (!name || !address || !pgType) throw new Error('Missing required fields')
 
   // Extract amenities from form
   const allAmenities = await prisma.amenity.findMany()
@@ -27,6 +29,8 @@ export async function createPg(formData: FormData) {
       name,
       address,
       pgType,
+      area: area || null,
+      mapsLink: mapsLink || null,
       ownerContact: ownerContact || null,
       whatsappContact: whatsappContact || null,
       description: description || null,
