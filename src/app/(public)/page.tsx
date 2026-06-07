@@ -28,7 +28,7 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
             {/* Text Content */}
             <div className="max-w-2xl">
-              <Badge variant="secondary" className="mb-6 px-4 py-1.5 text-sm font-medium bg-indigo-50 text-indigo-700 border-indigo-100 rounded-full">
+              <Badge variant="default" className="mb-6 px-4 py-1.5 text-sm font-medium bg-indigo-50 text-indigo-700 border-indigo-100 rounded-full">
                 Premium Co-living Spaces
               </Badge>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 mb-8 leading-[1.1]">
