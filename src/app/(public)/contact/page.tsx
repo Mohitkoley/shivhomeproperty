@@ -4,26 +4,11 @@ import { MapPin, Phone, Mail } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
+import { ContactForm } from './ContactForm'
+
 export default async function ContactPage() {
   const settings = await prisma.businessSettings.findFirst()
   const pgs = await prisma.pgProperty.findMany({ where: { isActive: true }})
-
-  async function submitEnquiry(formData: FormData) {
-    'use server'
-    const name = formData.get('name') as string
-    const phone = formData.get('phone') as string
-    const message = formData.get('message') as string
-    const pgId = formData.get('pgId') as string || null
-
-    if (!name || !phone || !message) return
-
-    await prisma.enquiry.create({
-      data: { name, phone, message, pgId: pgId || null }
-    })
-    
-    // Revalidate admin page so new enquiries show up immediately
-    revalidatePath('/admin/enquiries')
-  }
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl">
@@ -40,30 +25,10 @@ export default async function ContactPage() {
             <CardTitle>Send an Enquiry</CardTitle>
           </CardHeader>
           <CardContent>
-            <form action={submitEnquiry} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
-                <input type="text" name="name" required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input type="tel" name="phone" required className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Preferred PG (Optional)</label>
-                <select name="pgId" className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                  <option value="">I am not sure yet</option>
-                  {pgs.map(pg => (
-                    <option key={pg.id} value={pg.id}>{pg.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                <textarea name="message" required rows={4} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-              </div>
-              <Button type="submit" className="w-full">Submit Enquiry</Button>
-            </form>
+            <ContactForm 
+              pgs={pgs} 
+              whatsappNumber={settings?.whatsappNumber || settings?.contactNumber || undefined} 
+            />
           </CardContent>
         </Card>
 

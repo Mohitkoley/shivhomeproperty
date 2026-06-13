@@ -8,19 +8,25 @@ async function main() {
   // Get the first business settings record (there should only be one)
   const settings = await prisma.businessSettings.findFirst();
 
+  let updated;
   if (!settings) {
-    console.error('No business settings found to update.');
-    return;
+    updated = await prisma.businessSettings.create({
+      data: {
+        businessName: 'Shiv Home Property PG',
+        contactNumber: '88287 64628',
+        whatsappNumber: '88287 64628',
+        address: 'Malad west Toyota signal , Mumbai, MH, India'
+      }
+    });
+  } else {
+    updated = await prisma.businessSettings.update({
+      where: { id: settings.id },
+      data: {
+        contactNumber: '88287 64628',
+        whatsappNumber: '88287 64628',
+      }
+    });
   }
-
-  const updated = await prisma.businessSettings.update({
-    where: { id: settings.id },
-    data: {
-      contactNumber: '+91 88287 64628',
-      whatsappNumber: '+91 88287 64628',
-      address: 'Malad west Toyota signal , Mumbai, MH, India'
-    }
-  });
 
   console.log('Successfully updated business settings:', updated);
 }
