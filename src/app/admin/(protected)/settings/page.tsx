@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { updateBusinessSettings, addAmenity, deleteAmenity } from './actions'
 import { Trash2, Plus, Building2, Sparkles } from 'lucide-react'
 
@@ -96,9 +96,9 @@ export default async function SettingsPage() {
               </div>
               
               <div className="flex justify-end pt-2">
-                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all rounded-lg px-6">
+                <SubmitButton className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all rounded-lg px-6">
                   Save Changes
-                </Button>
+                </SubmitButton>
               </div>
             </form>
           </CardContent>
@@ -126,9 +126,9 @@ export default async function SettingsPage() {
                   className="w-full rounded-lg border border-slate-300 bg-slate-50/50 px-4 py-2.5 text-sm transition-colors focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" 
                 />
               </div>
-              <Button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-lg flex items-center gap-2 px-5">
+              <SubmitButton className="bg-slate-900 hover:bg-slate-800 text-white shadow-sm rounded-lg flex items-center gap-2 px-5">
                 <Plus className="w-4 h-4" /> Add
-              </Button>
+              </SubmitButton>
             </form>
 
             <div className="rounded-xl border border-slate-200 overflow-hidden">
