@@ -12,7 +12,7 @@ type PgProperty = {
 export function ContactForm({ pgs, whatsappNumber }: { pgs: PgProperty[], whatsappNumber?: string }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     setIsSubmitting(true)
 
@@ -35,13 +35,13 @@ export function ContactForm({ pgs, whatsappNumber }: { pgs: PgProperty[], whatsa
         const pgName = pgId ? pgs.find(p => p.id === pgId)?.name : 'Not sure'
         const text = `Hello! I have an enquiry:\n*Name:* ${name}\n*Phone:* ${phone}\n*Preferred PG:* ${pgName}\n*Message:* ${message}`
         const encodedText = encodeURIComponent(text)
-        
+
         let number = whatsappNumber.replace(/\D/g, '')
         // Add India country code if it's just a 10-digit number
         if (number.length === 10) {
           number = '91' + number
         }
-        
+
         window.location.href = `https://wa.me/${number}?text=${encodedText}`
       }
 
