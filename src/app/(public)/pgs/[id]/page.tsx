@@ -48,6 +48,11 @@ export default async function PgDetailPage({ params }: { params: { id: string } 
   const settings = await prisma.businessSettings.findFirst()
   const contactNumber = pg.ownerContact || settings?.contactNumber || ''
   const whatsappNumber = pg.whatsappContact || settings?.whatsappNumber || contactNumber
+  
+  let formattedWhatsapp = whatsappNumber?.replace(/\D/g, '') || ''
+  if (formattedWhatsapp.length === 10) {
+    formattedWhatsapp = '91' + formattedWhatsapp
+  }
 
   // Calculate stats
   const averageRating = pg.reviews.length > 0 
@@ -265,7 +270,7 @@ export default async function PgDetailPage({ params }: { params: { id: string } 
                       <Phone className="w-5 h-5 mr-2" /> Call Owner
                     </Button>
                     <Button 
-                      href={`https://wa.me/${whatsappNumber?.replace(/\D/g,'')}`} 
+                      href={`https://wa.me/${formattedWhatsapp}`} 
                       target="_blank"
                       className="w-full h-14 text-lg font-bold bg-[#25D366] hover:bg-[#1ebd5b] text-white border-0 shadow-lg shadow-green-200"
                     >

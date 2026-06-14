@@ -16,7 +16,8 @@ export function ContactForm({ pgs, whatsappNumber }: { pgs: PgProperty[], whatsa
     e.preventDefault()
     setIsSubmitting(true)
 
-    const formData = new FormData(e.currentTarget)
+    const form = e.currentTarget
+    const formData = new FormData(form)
     const name = formData.get('name') as string
     const phone = formData.get('phone') as string
     const message = formData.get('message') as string
@@ -28,22 +29,23 @@ export function ContactForm({ pgs, whatsappNumber }: { pgs: PgProperty[], whatsa
 
     if (result.success) {
       alert('Your enquiry has been submitted successfully!')
-      
-      // WhatsApp deep linking for mobile devices
+
+      // WhatsApp deep linking
       if (whatsappNumber) {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        const pgName = pgId ? pgs.find(p => p.id === pgId)?.name : 'Not sure'
+        const text = `Hello! I have an enquiry:\n*Name:* ${name}\n*Phone:* ${phone}\n*Preferred PG:* ${pgName}\n*Message:* ${message}`
+        const encodedText = encodeURIComponent(text)
         
-        if (isMobile) {
-          const pgName = pgId ? pgs.find(p => p.id === pgId)?.name : 'Not sure'
-          const text = `Hello! I have an enquiry:\n*Name:* ${name}\n*Phone:* ${phone}\n*Preferred PG:* ${pgName}\n*Message:* ${message}`
-          const encodedText = encodeURIComponent(text)
-          const number = whatsappNumber.replace(/\D/g, '')
-          
-          window.location.href = `https://wa.me/${number}?text=${encodedText}`
+        let number = whatsappNumber.replace(/\D/g, '')
+        // Add India country code if it's just a 10-digit number
+        if (number.length === 10) {
+          number = '91' + number
         }
+        
+        window.location.href = `https://wa.me/${number}?text=${encodedText}`
       }
-      
-      e.currentTarget.reset()
+
+      form.reset()
     } else {
       alert('Failed to submit enquiry. Please try again.')
     }
