@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { deletePg } from '../../actions' // Import from parent route actions
+import { deletePg, deletePgImage } from '../../actions' // Import from parent route actions
 import { revalidatePath } from 'next/cache'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -14,7 +14,8 @@ export default async function EditPgPage({ params }: { params: { id: string } })
     where: { id: resolvedParams.id },
     include: {
       roomTypes: true,
-      amenities: true
+      amenities: true,
+      images: true
     }
   })
 
@@ -46,6 +47,38 @@ export default async function EditPgPage({ params }: { params: { id: string } })
       .filter(a => formData.get(`amenity_${a.id}`) === 'on')
       .map(a => a.id)
 
+    // Handle new images upload
+    const imageFiles = formData.getAll('images') as File[]
+    const uploadedImages = []
+    
+    if (imageFiles && imageFiles.length > 0) {
+      for (const file of imageFiles) {
+        if (file.size > 0) {
+          const fileExt = file.name.split('.').pop()
+          // eslint-disable-next-line react-hooks/purity
+          const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
+          
+          const { supabase } = await import('@/lib/supabase')
+          const { error } = await supabase.storage
+            .from('pg-images')
+            .upload(fileName, file, { cacheControl: '3600', upsert: false })
+            
+          if (error) {
+            console.error("Error uploading image:", error)
+            continue
+          }
+          
+          const { data: publicUrlData } = supabase.storage
+            .from('pg-images')
+            .getPublicUrl(fileName)
+            
+          if (publicUrlData?.publicUrl) {
+            uploadedImages.push({ url: publicUrlData.publicUrl })
+          }
+        }
+      }
+    }
+
     await prisma.pgProperty.update({
       where: { id: pg?.id },
       data: {
@@ -64,28 +97,38 @@ export default async function EditPgPage({ params }: { params: { id: string } })
           create: selectedAmenityIds.map(id => ({
             amenity: { connect: { id } }
           }))
-        }
+        },
+        images: uploadedImages.length > 0 ? {
+          create: uploadedImages.map((img, index) => ({
+            url: img.url,
+            isMain: (pg?.images?.length ?? 0) === 0 && index === 0
+          }))
+        } : undefined
       }
     })
 
     // Update Room Types (simplified: delete all and recreate)
     await prisma.roomType.deleteMany({ where: { pgId: pg?.id } })
     
-    const roomTypesList = ['Single', '2 Sharing', '3 Sharing', '4 Sharing']
-    for (const rt of roomTypesList) {
-      const rent = formData.get(`rent_${rt}`)
-      const deposit = formData.get(`deposit_${rt}`)
-      
-      if (rent && Number(rent) > 0) {
-        await prisma.roomType.create({
-          data: {
-            pgId: pg!.id,
-            sharingType: rt,
-            rent: Number(rent),
-            deposit: deposit ? Number(deposit) : null,
-            isAvailable: formData.get(`available_${rt}`) === 'on'
-          }
-        })
+    const baseRoomTypesList = ['Single', '2 Sharing', '3 Sharing', '4 Sharing']
+    for (const base of baseRoomTypesList) {
+      const suffixes = ['(Non-AC)', '(AC)']
+      for (const suffix of suffixes) {
+        const typeStr = `${base} ${suffix}`
+        const rent = formData.get(`rent_${typeStr}`)
+        const deposit = formData.get(`deposit_${typeStr}`)
+        
+        if (rent && Number(rent) > 0) {
+          await prisma.roomType.create({
+            data: {
+              pgId: pg!.id,
+              sharingType: typeStr,
+              rent: Number(rent),
+              deposit: deposit ? Number(deposit) : null,
+              isAvailable: formData.get(`available_${typeStr}`) === 'on'
+            }
+          })
+        }
       }
     }
 
@@ -163,6 +206,28 @@ export default async function EditPgPage({ params }: { params: { id: string } })
               <label className="block text-sm font-medium text-gray-700 mb-1">Rules</label>
               <textarea name="rules" defaultValue={pg.rules || ''} rows={3} className="w-full rounded-md border border-gray-300 px-3 py-2"></textarea>
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Property Images</label>
+              {pg.images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  {pg.images.map(img => (
+                    <div key={img.id} className="relative group rounded-lg overflow-hidden border border-gray-200">
+                      <img src={img.url} alt="PG Image" className="w-full h-32 object-cover" />
+                      <button 
+                        formAction={deletePgImage.bind(null, img.id, pg.id)}
+                        className="absolute top-2 right-2 p-1.5 bg-red-600/80 hover:bg-red-600 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Delete image"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <input type="file" name="images" multiple accept="image/*" className="w-full rounded-md border border-gray-300 px-3 py-2 bg-white" />
+              <p className="text-xs text-gray-500 mt-1">Select new images to add to the property gallery.</p>
+            </div>
           </CardContent>
         </Card>
 
@@ -172,23 +237,57 @@ export default async function EditPgPage({ params }: { params: { id: string } })
           </CardHeader>
           <CardContent className="space-y-6">
             {['Single', '2 Sharing', '3 Sharing', '4 Sharing'].map((type) => {
-              const existingRoom = getRoom(type)
+              // Gracefully handle legacy room types (without AC/Non-AC suffix)
+              const getSpecificRoom = (suffix: string) => {
+                let room = pg.roomTypes.find(r => r.sharingType === `${type} ${suffix}`)
+                if (!room && suffix === '(Non-AC)') {
+                  // Fallback for legacy records that don't have a suffix
+                  room = pg.roomTypes.find(r => r.sharingType === type)
+                }
+                return room
+              }
+
+              const nonAcRoom = getSpecificRoom('(Non-AC)')
+              const acRoom = getSpecificRoom('(AC)')
+
               return (
-                <div key={type} className="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col md:flex-row gap-4 md:items-center justify-between">
-                  <div className="font-medium text-gray-900 min-w-[120px]">{type} Room</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 flex-1">
+                <div key={type} className="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col gap-4">
+                  <div className="font-medium text-gray-900 border-b border-gray-200 pb-2">{type} Room</div>
+                  
+                  {/* Non-AC */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                    <div className="font-medium text-sm text-gray-700">Non-AC</div>
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">Monthly Rent (₹)</label>
-                      <input type="number" name={`rent_${type}`} defaultValue={existingRoom?.rent || ''} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" />
+                      <input type="number" name={`rent_${type} (Non-AC)`} defaultValue={nonAcRoom?.rent || ''} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" placeholder="e.g. 8000" />
                     </div>
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">Security Deposit (₹)</label>
-                      <input type="number" name={`deposit_${type}`} defaultValue={existingRoom?.deposit || ''} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" />
+                      <input type="number" name={`deposit_${type} (Non-AC)`} defaultValue={nonAcRoom?.deposit || ''} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" placeholder="e.g. 8000" />
                     </div>
-                    <div className="flex items-center col-span-2 md:col-span-1 md:justify-center">
-                      <label className="flex items-center gap-2 text-sm cursor-pointer mt-5">
-                        <input type="checkbox" name={`available_${type}`} defaultChecked={existingRoom ? existingRoom.isAvailable : true} className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" />
-                        <span className="text-gray-700">Currently Available</span>
+                    <div className="flex items-center">
+                      <label className="flex items-center gap-2 text-sm cursor-pointer pb-1.5">
+                        <input type="checkbox" name={`available_${type} (Non-AC)`} defaultChecked={nonAcRoom ? nonAcRoom.isAvailable : true} className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" />
+                        <span className="text-gray-700">Available</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* AC */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                    <div className="font-medium text-sm text-gray-700">AC</div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Monthly Rent (₹)</label>
+                      <input type="number" name={`rent_${type} (AC)`} defaultValue={acRoom?.rent || ''} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" placeholder="e.g. 10000" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Security Deposit (₹)</label>
+                      <input type="number" name={`deposit_${type} (AC)`} defaultValue={acRoom?.deposit || ''} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" placeholder="e.g. 10000" />
+                    </div>
+                    <div className="flex items-center">
+                      <label className="flex items-center gap-2 text-sm cursor-pointer pb-1.5">
+                        <input type="checkbox" name={`available_${type} (AC)`} defaultChecked={acRoom ? acRoom.isAvailable : true} className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" />
+                        <span className="text-gray-700">Available</span>
                       </label>
                     </div>
                   </div>

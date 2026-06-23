@@ -73,6 +73,12 @@ export default async function CreatePgPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Rules</label>
               <textarea name="rules" rows={3} className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="e.g. Entry till 10 PM. Outside food allowed."></textarea>
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Property Images</label>
+              <input type="file" name="images" multiple accept="image/*" className="w-full rounded-md border border-gray-300 px-3 py-2 bg-white" />
+              <p className="text-xs text-gray-500 mt-1">You can select multiple images. The first image will be used as the cover.</p>
+            </div>
           </CardContent>
         </Card>
 
@@ -83,21 +89,43 @@ export default async function CreatePgPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             {['Single', '2 Sharing', '3 Sharing', '4 Sharing'].map((type) => (
-              <div key={type} className="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col md:flex-row gap-4 md:items-center justify-between">
-                <div className="font-medium text-gray-900 min-w-[120px]">{type} Room</div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 flex-1">
+              <div key={type} className="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col gap-4">
+                <div className="font-medium text-gray-900 border-b border-gray-200 pb-2">{type} Room</div>
+                
+                {/* Non-AC */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                  <div className="font-medium text-sm text-gray-700">Non-AC</div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Monthly Rent (₹)</label>
-                    <input type="number" name={`rent_${type}`} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" placeholder="e.g. 8000" />
+                    <input type="number" name={`rent_${type} (Non-AC)`} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" placeholder="e.g. 8000" />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Security Deposit (₹)</label>
-                    <input type="number" name={`deposit_${type}`} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" placeholder="e.g. 8000" />
+                    <input type="number" name={`deposit_${type} (Non-AC)`} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" placeholder="e.g. 8000" />
                   </div>
-                  <div className="flex items-center col-span-2 md:col-span-1 md:justify-center">
-                    <label className="flex items-center gap-2 text-sm cursor-pointer mt-5">
-                      <input type="checkbox" name={`available_${type}`} defaultChecked className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" />
-                      <span className="text-gray-700">Currently Available</span>
+                  <div className="flex items-center">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer pb-1.5">
+                      <input type="checkbox" name={`available_${type} (Non-AC)`} defaultChecked className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" />
+                      <span className="text-gray-700">Available</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* AC */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                  <div className="font-medium text-sm text-gray-700">AC</div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Monthly Rent (₹)</label>
+                    <input type="number" name={`rent_${type} (AC)`} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" placeholder="e.g. 10000" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Security Deposit (₹)</label>
+                    <input type="number" name={`deposit_${type} (AC)`} min="0" className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm" placeholder="e.g. 10000" />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer pb-1.5">
+                      <input type="checkbox" name={`available_${type} (AC)`} defaultChecked className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" />
+                      <span className="text-gray-700">Available</span>
                     </label>
                   </div>
                 </div>

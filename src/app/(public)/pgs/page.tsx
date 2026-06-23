@@ -20,7 +20,8 @@ export default async function PgsPage({ searchParams }: { searchParams: { area?:
       roomTypes: true,
       amenities: {
         include: { amenity: true }
-      }
+      },
+      images: true
     }
   })
 
@@ -95,10 +96,9 @@ export default async function PgsPage({ searchParams }: { searchParams: { area?:
 
             return (
               <div key={pg.id} className="group flex flex-col bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                {/* Image Container */}
                 <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
                   <img 
-                    src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=2069&auto=format&fit=crop" 
+                    src={pg.images && pg.images.length > 0 ? pg.images[0].url : "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=2069&auto=format&fit=crop"} 
                     alt={pg.name} 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />

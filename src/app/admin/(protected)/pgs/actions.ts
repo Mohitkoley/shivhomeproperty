@@ -24,6 +24,41 @@ export async function createPg(formData: FormData) {
     .filter(a => formData.get(`amenity_${a.id}`) === 'on')
     .map(a => a.id)
 
+  // Handle Images Upload
+  const imageFiles = formData.getAll('images') as File[]
+  const uploadedImages = []
+  
+  if (imageFiles && imageFiles.length > 0) {
+    for (const file of imageFiles) {
+      if (file.size > 0) {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
+        
+        // Use the supabase client
+        const { supabase } = await import('@/lib/supabase')
+        const { data, error } = await supabase.storage
+          .from('pg-images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          })
+          
+        if (error) {
+          console.error("Error uploading image:", error)
+          continue
+        }
+        
+        const { data: publicUrlData } = supabase.storage
+          .from('pg-images')
+          .getPublicUrl(fileName)
+          
+        if (publicUrlData?.publicUrl) {
+          uploadedImages.push({ url: publicUrlData.publicUrl })
+        }
+      }
+    }
+  }
+
   const pg = await prisma.pgProperty.create({
     data: {
       name,
@@ -39,32 +74,62 @@ export async function createPg(formData: FormData) {
         create: selectedAmenityIds.map(id => ({
           amenity: { connect: { id } }
         }))
+      },
+      images: {
+        create: uploadedImages.map((img, index) => ({
+          url: img.url,
+          isMain: index === 0
+        }))
       }
     }
   })
 
   // Room Types
-  const roomTypes = ['Single', '2 Sharing', '3 Sharing', '4 Sharing']
-  for (const rt of roomTypes) {
-    const rent = formData.get(`rent_${rt}`)
-    const deposit = formData.get(`deposit_${rt}`)
-    
-    if (rent && Number(rent) > 0) {
-      await prisma.roomType.create({
-        data: {
-          pgId: pg.id,
-          sharingType: rt,
-          rent: Number(rent),
-          deposit: deposit ? Number(deposit) : null,
-          isAvailable: formData.get(`available_${rt}`) === 'on'
-        }
-      })
+  const baseRoomTypes = ['Single', '2 Sharing', '3 Sharing', '4 Sharing']
+  for (const base of baseRoomTypes) {
+    const suffixes = ['(Non-AC)', '(AC)']
+    for (const suffix of suffixes) {
+      const typeStr = `${base} ${suffix}`
+      const rent = formData.get(`rent_${typeStr}`)
+      const deposit = formData.get(`deposit_${typeStr}`)
+      
+      if (rent && Number(rent) > 0) {
+        await prisma.roomType.create({
+          data: {
+            pgId: pg.id,
+            sharingType: typeStr,
+            rent: Number(rent),
+            deposit: deposit ? Number(deposit) : null,
+            isAvailable: formData.get(`available_${typeStr}`) === 'on'
+          }
+        })
+      }
     }
   }
 
   revalidatePath('/admin/pgs')
   revalidatePath('/pgs')
   redirect('/admin/pgs')
+}
+
+export async function deletePgImage(imageId: string, pgId: string) {
+  const image = await prisma.pgImage.findUnique({ where: { id: imageId } })
+  if (!image) return
+  
+  // Try to delete from supabase storage
+  // Public URL is like: https://[project].supabase.co/storage/v1/object/public/pg-images/filename.ext
+  const urlParts = image.url.split('/pg-images/')
+  if (urlParts.length > 1) {
+    const fileName = urlParts[1]
+    const { supabase } = await import('@/lib/supabase')
+    await supabase.storage.from('pg-images').remove([fileName])
+  }
+  
+  await prisma.pgImage.delete({ where: { id: imageId } })
+  
+  revalidatePath(`/admin/pgs/${pgId}/edit`)
+  revalidatePath(`/pgs/${pgId}`)
+  revalidatePath('/pgs')
 }
 
 export async function deletePg(id: string) {
