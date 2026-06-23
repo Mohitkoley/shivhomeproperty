@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { createPg } from '../actions'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -156,7 +157,7 @@ export default async function CreatePgPage() {
 
         <div className="flex justify-end gap-4">
           <Button href="/admin/pgs" variant="outline" type="button">Cancel</Button>
-          <Button type="submit">Create Property</Button>
+          <SubmitButton loadingText="Creating Property...">Create Property</SubmitButton>
         </div>
       </form>
     </div>

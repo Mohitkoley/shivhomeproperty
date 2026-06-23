@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import Link from 'next/link'
 import { Building, Plus, Trash2, Edit, CheckCircle, XCircle, MapPin, Users, Star, MessageSquare } from 'lucide-react'
 import { deletePg, togglePgStatus } from './actions'
@@ -117,15 +118,16 @@ export default async function AdminPgsPage() {
                   
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <form className="inline-block">
-                      <button 
+                      <SubmitButton 
                         formAction={togglePgStatus.bind(null, pg.id, pg.isActive)}
                         className={`text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
                           pg.isActive ? 'text-amber-700 bg-amber-50 hover:bg-amber-100' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
                         }`}
+                        loadingText={pg.isActive ? 'Deactivating...' : 'Activating...'}
                       >
                         {pg.isActive ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
                         <span className="hidden sm:inline">{pg.isActive ? 'Deactivate' : 'Activate'}</span>
-                      </button>
+                      </SubmitButton>
                     </form>
                     
                     <Link 
@@ -137,13 +139,14 @@ export default async function AdminPgsPage() {
                     </Link>
                     
                     <form className="inline-block">
-                      <button 
+                      <SubmitButton 
                         formAction={deletePg.bind(null, pg.id)}
                         className="text-sm font-semibold text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                        loadingText="Deleting..."
                       >
                         <Trash2 className="w-4 h-4" />
                         <span className="hidden sm:inline">Delete</span>
-                      </button>
+                      </SubmitButton>
                     </form>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { Badge } from '@/components/ui/Badge'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { approveReview, deleteReview } from './actions'
 import { Star, Building, Calendar, CheckCircle, Trash2, MessageSquare } from 'lucide-react'
 
@@ -68,19 +69,21 @@ export default async function ReviewsPage() {
                 <div className="pt-4 border-t border-slate-100 flex items-center gap-2 mt-2">
                   <form className="flex-1 flex gap-2">
                     {!review.isApproved && (
-                      <button 
+                      <SubmitButton 
                         formAction={approveReview.bind(null, review.id)}
                         className="flex-1 flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                        loadingText="Approving..."
                       >
                         <CheckCircle className="w-4 h-4" /> Approve
-                      </button>
+                      </SubmitButton>
                     )}
-                    <button 
+                    <SubmitButton 
                       formAction={deleteReview.bind(null, review.id)}
                       className={`flex items-center justify-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 py-2.5 rounded-xl text-sm font-semibold transition-colors ${review.isApproved ? 'flex-1' : 'px-4'}`}
+                      loadingText="Deleting..."
                     >
                       <Trash2 className="w-4 h-4" /> {review.isApproved && 'Delete'}
-                    </button>
+                    </SubmitButton>
                   </form>
                 </div>
               </div>
@@ -128,20 +131,20 @@ export default async function ReviewsPage() {
                       <td className="p-5 text-right whitespace-nowrap">
                         <form className="inline-flex items-center justify-end gap-3">
                           {!review.isApproved && (
-                            <button 
+                            <SubmitButton 
                               formAction={approveReview.bind(null, review.id)}
                               className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors flex items-center gap-1"
                             >
                               <CheckCircle className="w-4 h-4" /> Approve
-                            </button>
+                            </SubmitButton>
                           )}
-                          <button 
+                          <SubmitButton 
                             formAction={deleteReview.bind(null, review.id)}
                             className="text-red-500 hover:text-red-700 transition-colors p-2 rounded-full hover:bg-red-50"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
-                          </button>
+                          </SubmitButton>
                         </form>
                       </td>
                     </tr>

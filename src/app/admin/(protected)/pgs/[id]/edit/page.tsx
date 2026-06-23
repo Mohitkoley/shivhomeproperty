@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 import { deletePg, deletePgImage } from '../../actions' // Import from parent route actions
 import { revalidatePath } from 'next/cache'
 import { redirect, notFound } from 'next/navigation'
@@ -317,9 +318,9 @@ export default async function EditPgPage({ params }: { params: { id: string } })
           <Button formAction={deletePg.bind(null, pg.id)} variant="outline" className="text-red-600 hover:bg-red-50 border-red-200">
             Delete Property
           </Button>
-          <div className="flex gap-4">
+          <div className="flex justify-end gap-4">
             <Button href="/admin/pgs" variant="outline" type="button">Cancel</Button>
-            <Button type="submit">Save Changes</Button>
+            <SubmitButton loadingText="Updating Property...">Update Property</SubmitButton>
           </div>
         </div>
       </form>

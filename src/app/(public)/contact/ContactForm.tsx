@@ -74,8 +74,8 @@ export function ContactForm({ pgs, whatsappNumber }: { pgs: PgProperty[], whatsa
         <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
         <textarea name="message" required rows={4} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
       </div>
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Submitting...' : 'Submit Enquiry'}
+      <Button type="submit" className="w-full" isLoading={isSubmitting}>
+        Submit Enquiry
       </Button>
     </form>
   )

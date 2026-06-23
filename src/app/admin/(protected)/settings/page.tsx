@@ -137,13 +137,14 @@ export default async function SettingsPage() {
                   <div key={amenity.id} className="group flex justify-between items-center p-4 hover:bg-slate-50 transition-colors">
                     <span className="font-medium text-slate-700 text-sm">{amenity.name}</span>
                     <form>
-                      <button 
+                      <SubmitButton 
                         formAction={deleteAmenity.bind(null, amenity.id)} 
                         className="text-slate-400 hover:text-red-600 transition-colors p-1.5 rounded-md hover:bg-red-50"
                         title="Delete amenity"
+                        loadingText=""
                       >
                         <Trash2 className="w-4 h-4" />
-                      </button>
+                      </SubmitButton>
                     </form>
                   </div>
                 ))}
