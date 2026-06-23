@@ -60,6 +60,25 @@ export default async function PgDetailPage({ params }: { params: { id: string } 
     : 'New'
   const lowestRent = pg.roomTypes.length > 0 ? Math.min(...pg.roomTypes.map(rt => rt.rent)) : null
 
+  // Determine Map Embed URL from the google maps link or fallback to address
+  let mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(pg.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+  if (pg.mapsLink) {
+    if (pg.mapsLink.includes('output=embed') || pg.mapsLink.includes('google.com/maps/embed')) {
+      mapEmbedUrl = pg.mapsLink
+    } else {
+      // Try to extract exact pin coordinates (!3d...!4d...)
+      const exactMatch = pg.mapsLink.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)
+      // Try to extract viewport coordinates (@lat,lng)
+      const viewportMatch = pg.mapsLink.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+      
+      if (exactMatch) {
+        mapEmbedUrl = `https://maps.google.com/maps?q=${exactMatch[1]},${exactMatch[2]}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+      } else if (viewportMatch) {
+        mapEmbedUrl = `https://maps.google.com/maps?q=${viewportMatch[1]},${viewportMatch[2]}&t=&z=15&ie=UTF8&iwloc=&output=embed`
+      }
+    }
+  }
+
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
       {/* Full-width Photo Gallery Header */}
@@ -182,7 +201,7 @@ export default async function PgDetailPage({ params }: { params: { id: string } 
                   loading="lazy"
                   allowFullScreen
                   referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(pg.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                  src={mapEmbedUrl}
                 ></iframe>
               </div>
               <div className="mt-4 sm:hidden">
